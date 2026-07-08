@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/wishlist_provider.dart';
 import '../../models/product_model.dart';
 import '../../core/utils/currency_formatter.dart';
 import 'product_detail_page.dart';
@@ -183,9 +184,9 @@ class _ProductListPageState extends State<ProductListPage> {
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                          childAspectRatio: 0.72,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          childAspectRatio: 0.68,
                         ),
                         itemCount: provider.products.length +
                             (provider.hasMore ? 1 : 0),
@@ -231,36 +232,122 @@ class _ProductListPageState extends State<ProductListPage> {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(10),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+              color: const Color(0xFF1A73E8).withOpacity(0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
           ],
+          border: Border.all(color: Colors.blue.shade50, width: 1),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Gambar produk
-            ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(16)),
-              child: CachedNetworkImage(
-                imageUrl: product.imageUrl ?? '',
-                height: 130,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                placeholder: (_, __) => Container(
-                  color: Colors.grey.shade200,
-                  child: const Icon(Icons.image, color: Colors.grey),
-                ),
-                errorWidget: (_, __, ___) => Container(
-                  color: Colors.grey.shade100,
-                  child: const Icon(Icons.image_not_supported,
-                      color: Colors.grey, size: 40),
-                ),
+            // Gambar produk dengan Badge
+            Expanded(
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+                    child: CachedNetworkImage(
+                      imageUrl: product.imageUrl ?? '',
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) => Container(
+                        color: Colors.grey.shade200,
+                        child: const Icon(Icons.image, color: Colors.grey),
+                      ),
+                      errorWidget: (_, __, ___) => Container(
+                        color: Colors.grey.shade100,
+                        child: const Icon(Icons.image_not_supported,
+                            color: Colors.grey, size: 40),
+                      ),
+                    ),
+                  ),
+                  // Favorite Button
+                  Positioned(
+                    top: 4,
+                    left: 4,
+                    child: Consumer<WishlistProvider>(
+                      builder: (context, wishlist, child) {
+                        final isWishlisted = wishlist.isWishlisted(product.id);
+                        return GestureDetector(
+                          onTap: () => wishlist.toggleWishlist(product),
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.9),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              isWishlisted ? Icons.favorite : Icons.favorite_border,
+                              color: isWishlisted ? Colors.red : Colors.grey,
+                              size: 18,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  // Mock Discount Badge
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFE8F0FE), // Light blue
+                        borderRadius: BorderRadius.only(
+                          bottomLeft: Radius.circular(10),
+                          topRight: Radius.circular(10),
+                        ),
+                      ),
+                      child: Text(
+                        '-${(product.id.hashCode % 50) + 10}%', // Mock random discount
+                        style: const TextStyle(
+                          color: Color(0xFF1A73E8), // Primary blue
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Promo badge mock di bagian bawah gambar
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Color(0xFF1A73E8), Color(0xFF4285F4)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.only(
+                          topRight: Radius.circular(10),
+                        ),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.flash_on, color: Colors.yellow, size: 10),
+                          SizedBox(width: 4),
+                          Text(
+                            'PROMO',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             Padding(
@@ -268,39 +355,67 @@ class _ProductListPageState extends State<ProductListPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    product.name,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 13),
+                  RichText(
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
+                    text: TextSpan(
+                      children: [
+                        WidgetSpan(
+                          alignment: PlaceholderAlignment.middle,
+                          child: Container(
+                            margin: const EdgeInsets.only(right: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1A73E8),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              'Star+',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                        TextSpan(
+                          text: product.name,
+                          style: const TextStyle(
+                            color: Colors.black87,
+                            fontSize: 13,
+                            height: 1.2,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 4),
-                  if (product.category != null)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1A73E8).withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(4),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          CurrencyFormatter.format(product.price),
+                          style: const TextStyle(
+                            color: Color(0xFF1A73E8),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      child: Text(
-                        product.category!.name,
-                        style: const TextStyle(
+                      Text(
+                        '${product.reviewCount ?? (product.id.hashCode % 90) + 10}RB+ terjual',
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
                           fontSize: 10,
-                          color: Color(0xFF1A73E8),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                    ),
-                  const SizedBox(height: 6),
-                  Text(
-                    CurrencyFormatter.format(product.price),
-                    style: const TextStyle(
-                      color: Color(0xFF1A73E8),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
+                    ],
                   ),
                 ],
               ),
@@ -316,9 +431,9 @@ class _ProductListPageState extends State<ProductListPage> {
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 0.72,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 0.68,
       ),
       itemCount: 6,
       itemBuilder: (_, __) => Shimmer.fromColors(

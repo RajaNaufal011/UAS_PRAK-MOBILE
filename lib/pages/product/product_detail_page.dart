@@ -7,6 +7,7 @@ import '../../core/utils/currency_formatter.dart';
 import '../../models/product_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
+import '../../providers/wishlist_provider.dart';
 import '../cart/cart_page.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
@@ -143,6 +144,20 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             pinned: true,
             backgroundColor: Colors.white,
             foregroundColor: Colors.black87,
+            actions: [
+              Consumer<WishlistProvider>(
+                builder: (context, wishlist, child) {
+                  final isWishlisted = wishlist.isWishlisted(p.id);
+                  return IconButton(
+                    icon: Icon(
+                      isWishlisted ? Icons.favorite : Icons.favorite_border,
+                      color: isWishlisted ? Colors.red : Colors.grey,
+                    ),
+                    onPressed: () => wishlist.toggleWishlist(p),
+                  );
+                },
+              ),
+            ],
             flexibleSpace: FlexibleSpaceBar(
               background: p.imageUrl != null && p.imageUrl!.isNotEmpty
                   ? CachedNetworkImage(
@@ -288,45 +303,25 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         ],
       ),
 
-      // Bottom buy bar
       bottomNavigationBar: Container(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
         decoration: BoxDecoration(
           color: Colors.white,
           boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 12, offset: const Offset(0, -4))],
         ),
-        child: Row(children: [
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: inStock && !_isAddingToCart ? _addToCart : null,
-              icon: const Icon(Icons.shopping_cart_outlined),
-              label: const Text('Keranjang'),
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Color(0xFF1A73E8)),
-                foregroundColor: const Color(0xFF1A73E8),
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-            ),
+        child: ElevatedButton.icon(
+          onPressed: inStock && !_isAddingToCart ? _addToCart : null,
+          icon: _isAddingToCart
+              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+              : const Icon(Icons.shopping_cart),
+          label: Text(inStock ? 'Tambahkan ke Keranjang' : 'Stok Habis'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: inStock ? const Color(0xFF1A73E8) : Colors.grey,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            flex: 2,
-            child: ElevatedButton.icon(
-              onPressed: inStock && !_isAddingToCart ? _addToCart : null,
-              icon: _isAddingToCart
-                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : const Icon(Icons.flash_on),
-              label: Text(inStock ? 'Beli Sekarang' : 'Stok Habis'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: inStock ? const Color(0xFF1A73E8) : Colors.grey,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-            ),
-          ),
-        ]),
+        ),
       ),
     );
   }

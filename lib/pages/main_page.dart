@@ -7,6 +7,7 @@ import 'product/product_list_page.dart';
 import 'cart/cart_page.dart';
 import 'order/order_list_page.dart';
 import 'profile/profile_page.dart';
+import 'wishlist/wishlist_page.dart';
 
 /// Main page dengan BottomNavigationBar — 4 tab utama
 class MainPage extends StatefulWidget {
@@ -30,6 +31,7 @@ class _MainPageState extends State<MainPage> {
     ProductListPage(),
     CartPage(),
     OrderListPage(),
+    WishlistPage(),
     ProfilePage(),
   ];
 
@@ -174,6 +176,11 @@ class _MainPageState extends State<MainPage> {
               icon: Icon(Icons.receipt_long_outlined),
               activeIcon: Icon(Icons.receipt_long),
               label: 'Pesanan',
+            ),
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.favorite_outline),
+              activeIcon: Icon(Icons.favorite),
+              label: 'Wishlist',
             ),
             const BottomNavigationBarItem(
               icon: Icon(Icons.person_outline),
