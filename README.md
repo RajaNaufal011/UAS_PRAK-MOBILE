@@ -3,7 +3,7 @@
 ## Data Mahasiswa
 - **Nama**: Raja Naufal Fadhil
 - **NIM**: 2306020
-- **Kelas**: [Silakan Isi Kelas Anda]
+- **Kelas**: A-Informatika
 
 ## Daftar Fitur yang Diimplementasikan
 - **Autentikasi**: Fitur Login dan Register akun pengguna.
